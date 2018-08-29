@@ -12,7 +12,8 @@ interface GithubApi {
     @GET("search/repositories")
     fun getRepositories(@Query("q") q: String,
                         @Query("sort") sort: String,
-                        @Query("order") order: String): Single<SearchReposResponse>
+                        @Query("order") order: String,
+                        @Query("page") page: Int): Single<SearchReposResponse>
 
     @GET("repos/{owner}/{name}/subscribers")
     fun getSubscribers(@Path("owner") owner: String,

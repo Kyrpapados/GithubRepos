@@ -1,5 +1,6 @@
 package kyrpap.githubrepos.ui.repos
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
@@ -11,7 +12,7 @@ import kotlinx.android.synthetic.main.item_repo.view.*
 import kyrpap.githubrepos.R
 import kyrpap.githubrepos.data.model.local.Repository
 
-class SearchRepoAdapter(private val mContext: Context, private val dataList : List<Repository>, private val clickListener: (Repository) -> Unit) : RecyclerView.Adapter<SearchRepoAdapter.ViewHolder>(){
+class SearchRepoAdapter(private val mContext: Context, private var dataList : MutableList<Repository>, private val clickListener: (Repository) -> Unit) : RecyclerView.Adapter<SearchRepoAdapter.ViewHolder>(){
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_repo, parent, false)
@@ -26,8 +27,18 @@ class SearchRepoAdapter(private val mContext: Context, private val dataList : Li
         holder.bind(dataList[position],mContext, clickListener)
     }
 
+    fun loadMoreItems(competitionList: List<Repository>) {
+        if (competitionList.isEmpty()) {
+            return
+        }
+        val previousItemCount = dataList.size
+        this.dataList.addAll(competitionList)
+        notifyItemRangeInserted(previousItemCount, competitionList.size)
+    }
+
     class ViewHolder(view : View) : RecyclerView.ViewHolder(view) {
 
+        @SuppressLint("StringFormatMatches")
         fun bind(repository: Repository, mContext: Context, clickListener: (Repository) -> Unit) {
 
             itemView.name.text = mContext.getString(R.string.repo_name,  repository.name)

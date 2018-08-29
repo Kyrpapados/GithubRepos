@@ -12,7 +12,9 @@ import kotlinx.android.synthetic.main.activity_search_repos.*
 import kyrpap.githubrepos.R
 import kyrpap.githubrepos.data.model.local.Repository
 import kyrpap.githubrepos.ui.base.BaseActivity
+import kyrpap.githubrepos.ui.repos.SearchRepoPresenter.Companion.INITIAL_PAGE
 import kyrpap.githubrepos.ui.repos.details.SearchRepoDetailsActivity
+import kyrpap.githubrepos.utils.EndlessRecyclerOnScrollListener
 import kyrpap.githubrepos.utils.listeners.OnCompoundDrawableClickListener
 import javax.inject.Inject
 
@@ -22,6 +24,8 @@ class SearchReposActivity : BaseActivity(), SearchRepoContract.View, ItemClickLi
     lateinit var mPresenter: SearchRepoPresenter<SearchRepoContract.View>
 
     private var mAdapter: SearchRepoAdapter? = null
+
+    private var mEndlessScrollListener: EndlessRecyclerOnScrollListener? = null
 
     override fun setLayout(): Int = R.layout.activity_search_repos
 
@@ -44,12 +48,26 @@ class SearchReposActivity : BaseActivity(), SearchRepoContract.View, ItemClickLi
         reposRecyclerView.layoutManager = mLayoutManager
         reposRecyclerView.itemAnimator = DefaultItemAnimator()
         reposRecyclerView.addItemDecoration(DividerItemDecoration(reposRecyclerView.context, mLayoutManager.orientation))
+
+        mEndlessScrollListener = object : EndlessRecyclerOnScrollListener(mLayoutManager) {
+            override fun onLoadMore(currentPage: Int) {
+
+                    mPresenter.requestReposByPage(draw_id_input_text.text.toString(), currentPage)
+
+            }
+        }
+        (mEndlessScrollListener as EndlessRecyclerOnScrollListener).resetPageCount(INITIAL_PAGE)
+        reposRecyclerView.addOnScrollListener(mEndlessScrollListener as EndlessRecyclerOnScrollListener)
     }
 
-    override fun showAllRepositories(competitionList: List<Repository>) {
+    override fun showAllRepositories(competitionList: MutableList<Repository>) {
         mAdapter = SearchRepoAdapter(this, competitionList, this::onItemClick)
 
         reposRecyclerView.adapter = mAdapter
+    }
+
+    override fun addRepositories(competitionList: MutableList<Repository>) {
+        mAdapter!!.loadMoreItems(competitionList)
     }
 
     override fun onItemClick(repository: Repository) {
